@@ -30,7 +30,8 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     private fun setViewContent() {
         setContent {
             ARComposeTheme {
-                SimpleCameraPreview { color -> ViewModel.setCurrentColorInt(color)}
+                SimpleCameraPreview(PaletteAnalyzer { color -> ViewModel.setCurrentColorInt(color) })
                 DynamicPointMesh(Modifier.fillMaxSize(), ViewModel.currentColor)
             }
         }

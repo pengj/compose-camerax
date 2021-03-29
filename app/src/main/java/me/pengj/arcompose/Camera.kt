@@ -23,7 +23,7 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executor
 
 @Composable
-fun SimpleCameraPreview(onColorChange: (MeshColor) -> Unit) {
+fun SimpleCameraPreview(analyzer: ImageAnalysis.Analyzer) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -38,7 +38,7 @@ fun SimpleCameraPreview(onColorChange: (MeshColor) -> Unit) {
                     lifecycleOwner,
                     preview,
                     cameraProvider,
-                    onColorChange,
+                    analyzer,
                     executor
                 )
             }, executor)
@@ -53,7 +53,7 @@ private fun bindPreview(
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     cameraProvider: ProcessCameraProvider,
-    onColorChange: (MeshColor) -> Unit,
+    analyzer: ImageAnalysis.Analyzer,
     executor: Executor
 ) {
     val preview = Preview.Builder().build().also {
@@ -68,48 +68,18 @@ private fun bindPreview(
     cameraProvider.bindToLifecycle(
         lifecycleOwner,
         cameraSelector,
-        setupImageAnalysis(onColorChange, executor),
+        setupImageAnalysis(executor, analyzer),
         preview
     )
 }
 
-private fun setupImageAnalysis(onColorChange: (MeshColor) -> Unit, executor: Executor): ImageAnalysis {
+private fun setupImageAnalysis(executor: Executor, analyzer: ImageAnalysis.Analyzer): ImageAnalysis {
     return ImageAnalysis.Builder()
         .setTargetResolution(Size(720, 1280))
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .build()
         .apply {
-            setAnalyzer(executor, ImageAnalysis.Analyzer { imageProxy ->
-                imageProxy.convertImageProxyToBitmap()?.let {
-                    val palette = Palette.Builder(it).generate()
-                    onColorChange.invoke(
-                        MeshColor(
-                            palette.darkVibrantSwatch?.rgb ?: -1,
-                            palette.darkVibrantSwatch?.titleTextColor ?: -1,
-                            imageProxy.imageInfo.timestamp
-                        )
-                    )
-                }
-                imageProxy.close()
-            })
+            setAnalyzer(executor,analyzer)
         }
 }
 
-fun ImageProxy.convertImageProxyToBitmap(): Bitmap? {
-    val yBuffer = planes[0].buffer // Y
-    val vuBuffer = planes[2].buffer // VU
-
-    val ySize = yBuffer.remaining()
-    val vuSize = vuBuffer.remaining()
-
-    val nv21 = ByteArray(ySize + vuSize)
-
-    yBuffer.get(nv21, 0, ySize)
-    vuBuffer.get(nv21, ySize, vuSize)
-
-    val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
-    val out = ByteArrayOutputStream()
-    yuvImage.compressToJpeg(Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
-    val imageBytes = out.toByteArray()
-    return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-}
