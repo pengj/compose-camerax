@@ -1,16 +1,21 @@
 package me.pengj.arcompose
 
-import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import kotlin.math.*
+
+/**
+ *
+ * Adapt from the this gist
+ * https://gist.github.com/ditn/1086dd57f3f38588afa4d83df58ef726#file-dynamicmeshnetwork-kt
+ *
+ * */
 
 private const val PARTICLE_QUANTITY = 100
 private const val DEFAULT_SPEED = 2
@@ -19,7 +24,6 @@ private const val DEFAULT_RADIUS = 4
 private const val VARIANT_RADIUS = 10
 private const val LINK_RADIUS = 200
 
-// TODO: 30/09/2020 These should be measured but are only used to calculate
 // the initial position
 private const val WIDTH = 1080f
 private const val HEIGHT = 2022f
@@ -131,7 +135,7 @@ private fun linkParticles(
 ) {
     particles.forEach { particle ->
         val distance =
-            calculateDistance(currentParticle.x, currentParticle.y, particle.x, particle.y);
+            calculateDistance(currentParticle.x, currentParticle.y, particle.x, particle.y)
         val opacity = 1 - distance / LINK_RADIUS
         if (opacity > 0) {
             drawScope.drawLine(
