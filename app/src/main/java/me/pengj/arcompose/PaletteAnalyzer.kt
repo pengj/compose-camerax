@@ -22,6 +22,7 @@ class PaletteAnalyzer(private val onColorChange: (MeshColor) -> Unit) : ImageAna
     }
 }
 
+//based on the code from https://stackoverflow.com/a/56812799
 fun ImageProxy.convertImageProxyToBitmap(): Bitmap? {
     val yBuffer = planes[0].buffer // Y
     val vuBuffer = planes[2].buffer // VU
