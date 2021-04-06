@@ -12,7 +12,7 @@ class ColorViewModel : ViewModel() {
 
     fun setCurrentColorInt(color: MeshColor) {
         val diff = color.timestamp - currentColor.timestamp
-        if (diff > 4013500000) {
+        if (diff > 100000000) {
             currentColor = color
         }
     }

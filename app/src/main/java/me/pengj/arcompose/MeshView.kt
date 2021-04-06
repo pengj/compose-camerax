@@ -4,6 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -39,11 +40,12 @@ fun DynamicPointMesh(modifier: Modifier = Modifier, color: MeshColor) {
         )
     )
 
-    // remove the array, only change the color
     val particles =
-        (0 until PARTICLE_QUANTITY)
-            .map { generateParticle(WIDTH, HEIGHT, color.mainColor) }
-            .toTypedArray()
+        remember {
+            (0 until PARTICLE_QUANTITY)
+                .map { generateParticle(WIDTH, HEIGHT, color.mainColor) }
+                .toTypedArray()
+        }
 
     Canvas(modifier = modifier) {
         // Unused but required for draw update
@@ -51,8 +53,7 @@ fun DynamicPointMesh(modifier: Modifier = Modifier, color: MeshColor) {
         @Suppress("UNUSED_VARIABLE") val progress = animatedProgress.absoluteValue
 
         particles.forEachIndexed { index, particle ->
-            particles[index] = particle.update(size.width, size.height)
-
+            particles[index] = particle.update(size.width, size.height, color.mainColor)
             drawCircle(
                 color = particles[index].color,
                 radius = particles[index].radius,
@@ -76,10 +77,10 @@ private data class Particle(
     val vector: Vector
 ) {
 
-    fun update(w: Float, h: Float): Particle {
+    fun update(w: Float, h: Float, mainColor: Color): Particle {
         val border = calculateBorder(w, h)
 
-        return border.copy(x = border.x + border.vector.x, y = border.y + border.vector.y)
+        return border.copy(x = border.x + border.vector.x, y = border.y + border.vector.y, color = mainColor)
     }
 
     private fun calculateBorder(w: Float, h: Float): Particle = copy(
